@@ -212,20 +212,16 @@ rollback;
 -- PART 6: GRANT + REVOKE (RE-RUN SAFE)
 -- =====================================================
 
--- safely reset roles to avoid "already exists" error
-drop role if exists restaurant_db_readonly;
-drop role if exists restaurant_db_writer;
+-- ===== PART 6: GRANT & REVOKE =====
 
--- create roles for access control
-create role restaurant_db_readonly;
-create role restaurant_db_writer;
+-- safe re-run fix: remove privileges first (prevents role dependency error)
+revoke all privileges on all tables in schema restaurant from restaurant_db_readonly;
+revoke all privileges on all tables in schema restaurant from restaurant_db_writer;
 
--- allow read-only access to all tables in restaurant schema
+-- re-apply privileges
 grant select on all tables in schema restaurant to restaurant_db_readonly;
 
--- allow writers to insert and update orders (core business table)
 grant insert, update on orders to restaurant_db_writer;
 
--- business rule: writers should not modify existing order history
+-- business rule: writers should not modify historical data
 revoke update on orders from restaurant_db_writer;
-
